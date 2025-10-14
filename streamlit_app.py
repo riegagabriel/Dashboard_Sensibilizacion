@@ -74,7 +74,7 @@ if df is not None:
 
     # Mensaje adicional
     if avance > 1:
-        st.success(f"🚀 ¡Meta superada por {(avance - 1) * 100:.1f}%! Excelente trabajo.")
+        st.success(f"🚀 ¡Meta superada por {(avance - 1) * 100:.1f}%!")
     else:
         st.info(f"📈 Progreso actual: {avance*100:.1f}% del objetivo.")
 
