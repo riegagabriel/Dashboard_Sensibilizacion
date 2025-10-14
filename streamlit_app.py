@@ -40,23 +40,42 @@ if df is not None:
     with col4:
         st.metric("👥 Total personas sensibilizadas", int(df.loc[df["Variable"] == "total_personas_sen", "Valor"].values[0]))
 
-# --- Datos del progreso ---
-# Obtener valor de domicilios sensibilizados desde el DataFrame
+import plotly.graph_objects as go
+
+# Obtener valor real desde tu DataFrame
 logrado = int(df.loc[df["Variable"] == "dom_sensibilizados", "Valor"].values[0])
 meta = 13343
-avance = logrado / meta
+avance = (logrado / meta) * 100  # porcentaje
 
 st.markdown("### 🎯 Avance hacia la meta de domicilios sensibilizados")
 
-# Mostrar barra de progreso
-if avance <= 1:
-    st.progress(avance)
-else:
-    st.progress(1.0)  # Progreso completo si supera meta
+# Crear gráfico Gauge
+fig = go.Figure(go.Indicator(
+    mode="gauge+number+delta",
+    value=avance,
+    number={'suffix': "%"},
+    delta={'reference': 100, 'increasing': {'color': "green"}},
+    gauge={
+        'axis': {'range': [0, max(120, avance)], 'tickwidth': 1},
+        'bar': {'color': "green"},
+        'steps': [
+            {'range': [0, 50], 'color': "#FFE5CC"},
+            {'range': [50, 100], 'color': "#FFD27F"},
+            {'range': [100, max(120, avance)], 'color': "#B6FFB6"}
+        ],
+        'threshold': {
+            'line': {'color': "red", 'width': 4},
+            'thickness': 0.75,
+            'value': 100
+        }
+    }
+))
 
-# Mostrar texto explicativo
-if avance > 1:
-    st.success(f"✅ Meta superada: {logrado:,} domicilios sensibilizados ({avance*100:.1f}% del objetivo)")
-else:
-    st.info(f"Progreso actual: {avance*100:.1f}% ({logrado:,} de {meta:,} domicilios)")
+fig.update_layout(height=350, margin=dict(l=30, r=30, t=50, b=0))
+st.plotly_chart(fig, use_container_width=True)
 
+# Mensaje adicional
+if avance > 100:
+    st.success(f"✅ ¡Meta superada! {logrado:,} domicilios sensibilizados ({avance:.1f}% del objetivo)")
+else:
+    st.info(f"Avance actual: {avance:.1f}% ({logrado:,} de {meta:,})")
