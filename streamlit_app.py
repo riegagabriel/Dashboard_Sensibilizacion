@@ -1,36 +1,50 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 
-# -----------------------------------
-# CONFIGURACIÓN DE LA PÁGINA
-# -----------------------------------
-st.set_page_config(page_title="Dashboard Demo", layout="wide")
+# ---------------------------
+# CONFIGURACIÓN
+# ---------------------------
+st.set_page_config(page_title="Dashboard Sensibilización", layout="wide")
+st.title("📊 Dashboard - Indicadores de Sensibilización")
 
-# -----------------------------------
-# DATA DE PRUEBA (PUEDES CAMBIARLA)
-# -----------------------------------
-df = pd.read_excel("value_box_sens.xlsx")
-# -----------------------------------
-# SENSIBILIZACIÓN
-# -----------------------------------
-st.title("📊Indicadores - Campaña de Sensibilización(27/06 - 14/10")
+# ---------------------------
+# CARGA DE DATOS
+# ---------------------------
+@st.cache_data
+def cargar_datos():
+    try:
+        # Primero intenta cargar Excel
+        return pd.read_excel("value_box_sens.xlsx")
+    except:
+        try:
+            # Si no hay Excel intenta cargar CSV
+            return pd.read_csv("value_box_sens.csv")
+        except:
+            st.error("⚠️ No se encontró archivo de datos. Sube un .xlsx o .csv.")
+            return None
 
-# -----------------------------------
-# VALUE BOXES (INDICADORES ARRIBA)
-# -----------------------------------
-st.subheader("📌 Indicadores principales")
-col1, col2, col3, col4 = st.columns(4)
+df = cargar_datos()
 
-with col1:
-    st.metric(label="🏡 Domicilios alcanzados", value=Variable.loc[0, "Valor"])
+if df is not None:
+    # ---------------------------
+    # VALUE BOXES
+    # ---------------------------
+    col1, col2, col3, col4 = st.columns(4)
 
-with col2:
-    st.metric(label="📣 Domicilios sensibilizados", value=Variable.loc[1, "Valor"])
+    with col1:
+        st.metric("🏡 Domicilios alcanzados", int(df.loc[df["Variable"] == "dom_alcanzados", "Valor"].values[0]))
+    with col2:
+        st.metric("📣 Domicilios sensibilizados", int(df.loc[df["Variable"] == "dom_sensibilizados", "Valor"].values[0]))
+    with col3:
+        st.metric("👶 Caras de niño sensibilizadas", int(df.loc[df["Variable"] == "cara_nino_sens", "Valor"].values[0]))
+    with col4:
+        st.metric("👥 Total personas sensibilizadas", int(df.loc[df["Variable"] == "total_personas_sen", "Valor"].values[0]))
 
-with col3:
-    st.metric(label="👶 Caras de niño sensibilizadas", value=Variable.loc[2, "Valor"])
-
-with col4:
-    st.metric(label="👥 Total personas sensibilizadas", value=Variable.loc[3, "Valor"])
+    # ---------------------------
+    # TABLA
+    # ---------------------------
+    st.markdown("### 📋 Datos cargados")
+    st.dataframe(df)
+else:
+    st.info("📥 Sube un archivo primero en la barra lateral.")
 
