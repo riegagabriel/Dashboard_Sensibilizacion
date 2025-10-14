@@ -42,37 +42,47 @@ if df is not None:
 
 import plotly.graph_objects as go
 
-# Obtener valor real desde tu DataFrame
+import streamlit as st
+
+# Obtener el avance desde tu DataFrame
 logrado = int(df.loc[df["Variable"] == "dom_sensibilizados", "Valor"].values[0])
 meta = 13343
-avance = (logrado / meta) * 100  # porcentaje
+avance = logrado / meta  # porcentaje decimal
 
+# Bloque visual
 st.markdown("### 🎯 Avance hacia la meta de domicilios sensibilizados")
 
-# Crear gráfico Gauge
-fig = go.Figure(go.Indicator(
-    mode="gauge+number+delta",
-    value=avance,
-    number={'suffix': "%"},
-    delta={'reference': 100, 'increasing': {'color': "green"}},
-    gauge={
-        'axis': {'range': [0, max(120, avance)], 'tickwidth': 1},
-        'bar': {'color': "green"},
-        'steps': [
-            {'range': [0, 50], 'color': "#FFE5CC"},
-            {'range': [50, 100], 'color': "#FFD27F"},
-            {'range': [100, max(120, avance)], 'color': "#B6FFB6"}
-        ],
-        'threshold': {
-            'line': {'color': "red", 'width': 4},
-            'thickness': 0.75,
-            'value': 100
-        }
-    }
-))
+# Contenedor estilizado
+progress_html = f"""
+<div style="border:1px solid #ddd; padding:15px; border-radius:10px; background-color:#f9f9f9;">
+  <p style="margin:0; font-weight:bold; font-size:16px;">
+    Meta: {meta:,}
+    <span style="float:right;">{'│' if advance <= 1 else ''}</span>
+  </p>
+  <div style="margin-top:10px; background-color:#e6e6e6; border-radius:8px; height:28px;">
+    <div style="
+      width:{min(avance*100, 100)}%;
+      background-color:#007BFF;
+      height:100%;
+      border-radius:8px;
+    "></div>
+  </div>
+  <p style="margin-top:8px; font-size:16px; font-weight:bold;">
+    Avance: {logrado:,} 
+    <span style="color:green; font-weight:bold;">
+      ✅ ({avance*100:.1f}% del objetivo)
+    </span>
+  </p>
+</div>
+"""
 
-fig.update_layout(height=350, margin=dict(l=30, r=30, t=50, b=0))
-st.plotly_chart(fig, use_container_width=True)
+st.markdown(progress_html, unsafe_allow_html=True)
+
+# Mensaje adicional
+if avance > 1:
+    st.success(f"🚀 ¡Meta superada por {((avance - 1) * 100):.1f}%! Excelente avance.")
+else:
+    st.info(f"Progreso actual: {avance*100:.1f}% del objetivo.")
 
 # Mensaje adicional
 if avance > 100:
