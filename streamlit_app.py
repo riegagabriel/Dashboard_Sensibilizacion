@@ -5,7 +5,7 @@ import pandas as pd
 # CONFIGURACIÓN
 # ---------------------------
 st.set_page_config(page_title="Dashboard Sensibilización", layout="wide")
-st.title("📊 Dashboard - Indicadores de Sensibilización")
+st.title("📊 Campaña de Sensibilización")
 
 # ---------------------------
 # CARGA DE DATOS
@@ -40,11 +40,23 @@ if df is not None:
     with col4:
         st.metric("👥 Total personas sensibilizadas", int(df.loc[df["Variable"] == "total_personas_sen", "Valor"].values[0]))
 
-    # ---------------------------
-    # TABLA
-    # ---------------------------
-    st.markdown("### 📋 Datos cargados")
-    st.dataframe(df)
+# --- Datos del progreso ---
+# Obtener valor de domicilios sensibilizados desde el DataFrame
+logrado = int(df.loc[df["Variable"] == "dom_sensibilizados", "Valor"].values[0])
+meta = 13343
+avance = logrado / meta
+
+st.markdown("### 🎯 Avance hacia la meta de domicilios sensibilizados")
+
+# Mostrar barra de progreso
+if avance <= 1:
+    st.progress(avance)
 else:
-    st.info("📥 Sube un archivo primero en la barra lateral.")
+    st.progress(1.0)  # Progreso completo si supera meta
+
+# Mostrar texto explicativo
+if avance > 1:
+    st.success(f"✅ Meta superada: {logrado:,} domicilios sensibilizados ({avance*100:.1f}% del objetivo)")
+else:
+    st.info(f"Progreso actual: {avance*100:.1f}% ({logrado:,} de {meta:,} domicilios)")
 
