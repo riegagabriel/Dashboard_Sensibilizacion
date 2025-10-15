@@ -31,10 +31,10 @@ df = cargar_datos()
 @st.cache_data
 def cargar_resumen_distrital():
     try:
-        return pd.read_excel("resumen_distrital copy.xlsx")
+        return pd.read_excel("resumen_distrital_copy.xlsx")
     except:
         try:
-            return pd.read_csv("resumen_distrital copy.csv")
+            return pd.read_csv("resumen_distrital_copy.csv")
         except:
             st.error("⚠️ No se encontró archivo resumen_distrital copy (.xlsx o .csv). Súbelo a la carpeta del proyecto.")
             return None
