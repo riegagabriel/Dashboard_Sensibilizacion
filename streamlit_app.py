@@ -126,7 +126,7 @@ if resumen_distrital_copy is not None:
         
         y_pos = np.arange(len(distritos))
         ax.barh(y_pos, sensibilizados, label='Sensibilizados', color='#2ecc71')
-        ax.barh(y_pos, pendientes, left=sensibilizados, label='Pendientes', color='#e74c3c')
+        ax.barh(y_pos, pendientes, left=sensibilizados, label='Asignados', color='#e74c3c')
 
         ax.set_yticks(y_pos)
         ax.set_yticklabels(distritos, fontsize=9)
