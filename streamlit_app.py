@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
 
 # ---------------------------
 # CONFIGURACIÓN
@@ -22,6 +24,22 @@ def cargar_datos():
             return None
 
 df = cargar_datos()
+
+# ---------------------------
+# CARGA DE RESUMEN DISTRITAL
+# ---------------------------
+@st.cache_data
+def cargar_resumen_distrital():
+    try:
+        return pd.read_excel("resumen_distrital_copy.xlsx")
+    except:
+        try:
+            return pd.read_csv("resumen_distrital_copy.csv")
+        except:
+            st.error("⚠️ No se encontró 'resumen_distrital_copy'. Sube un .xlsx o .csv.")
+            return None
+
+df_resumen = cargar_resumen_distrital()
 
 if df is not None:
     # ---------------------------
@@ -77,4 +95,56 @@ if df is not None:
         st.success(f"🚀 ¡Meta superada por {(avance - 1) * 100:.1f}%!")
     else:
         st.info(f"📈 Progreso actual: {avance*100:.1f}% del objetivo.")
+
+# ============================
+# GRÁFICO DE AVANCE POR DISTRITO
+# ============================
+if resumen_distrital_copy is not None:
+
+    st.markdown("## 📊 Avance de sensibilización por distrito")
+
+    # Calcular pendientes
+    resumen_distrital_copy['pendientes'] = resumen_distrital_copy['PROYECCION_ASIGNADOS'] - resumen_distrital_copy['total_domicilios_sensibilizados']
+    resumen_distrital_copy['pendientes'] = resumen_distrital_copy['pendientes'].clip(lower=0)
+
+    # Separar Lima y Callao vs otras regiones
+    lima_callao = resumen_distrital_copy[resumen_distrital_copy['region'].isin(['LIMA', 'CALLAO'])].copy()
+    otras_regiones = resumen_distrital_copy[~resumen_distrital_copy['region'].isin(['LIMA', 'CALLAO'])].copy()
+
+    # Ordenar
+    lima_callao = lima_callao.sort_values('total_domicilios_sensibilizados', ascending=True)
+    otras_regiones = otras_regiones.sort_values('total_domicilios_sensibilizados', ascending=True)
+
+    # Crear gráficos
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(22, 12))
+
+    def crear_grafico(df, ax, titulo):
+        distritos = df['distrito_region'].values
+        sensibilizados = df['total_domicilios_sensibilizados'].values
+        pendientes = df['pendientes'].values
+        
+        y_pos = np.arange(len(distritos))
+        ax.barh(y_pos, sensibilizados, label='Sensibilizados', color='#2ecc71')
+        ax.barh(y_pos, pendientes, left=sensibilizados, label='Pendientes', color='#e74c3c')
+
+        ax.set_yticks(y_pos)
+        ax.set_yticklabels(distritos, fontsize=9)
+        ax.set_title(titulo, fontsize=14, fontweight='bold')
+        ax.set_xlabel('Domicilios')
+        ax.legend()
+
+    # Dibujar gráficos
+    if not lima_callao.empty:
+        crear_grafico(lima_callao, ax1, 'LIMA Y CALLAO')
+    else:
+        ax1.text(0.5, 0.5, 'Sin datos', ha='center')
+
+    if not otras_regiones.empty:
+        crear_grafico(otras_regiones, ax2, 'OTRAS REGIONES')
+    else:
+        ax2.text(0.5, 0.5, 'Sin datos', ha='center')
+
+    st.pyplot(fig)
+
+
 
