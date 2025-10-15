@@ -150,7 +150,7 @@ if resumen_distrital_copy is not None:
     fig.add_trace(go.Bar(
         y=df_filtrado['distrito_region'],
         x=df_filtrado['pendientes'],
-        name='Pendientes',
+        name='Asignados',
         orientation='h',
         marker=dict(color='#e74c3c'),
         text=df_filtrado['pendientes'],
@@ -160,7 +160,7 @@ if resumen_distrital_copy is not None:
     fig.update_layout(
         barmode='stack',
         height=700,
-        title="Avance por distrito (Sensibilizados + Pendientes)",
+        title="Avance por distrito (Sensibilizados + Asignados)",
         xaxis_title="Número de domicilios",
         yaxis_title="",
         legend_title="Estado",
