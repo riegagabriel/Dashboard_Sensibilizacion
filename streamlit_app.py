@@ -98,54 +98,76 @@ if df is not None:
         st.info(f"📈 Progreso actual: {avance*100:.1f}% del objetivo.")
 
 # ============================
-# GRÁFICO DE AVANCE POR DISTRITO
+# GRÁFICO DE AVANCE POR DISTRITO (PLOTLY STACKED)
 # ============================
+import plotly.graph_objects as go
+
 if resumen_distrital_copy is not None:
-
     st.markdown("## 📊 Avance de sensibilización por distrito")
+    st.markdown("Selecciona una región para filtrar los resultados:")
 
-    # Calcular pendientes
-    resumen_distrital_copy['pendientes'] = resumen_distrital_copy['PROYECCION_ASIGNADOS'] - resumen_distrital_copy['total_domicilios_sensibilizados']
-    resumen_distrital_copy['pendientes'] = resumen_distrital_copy['pendientes'].clip(lower=0)
+    # ---------------------------
+    # Preparación de datos
+    # ---------------------------
+    resumen_distrital_copy['pendientes'] = (
+        resumen_distrital_copy['PROYECCION_ASIGNADOS']
+        - resumen_distrital_copy['total_domicilios_sensibilizados']
+    ).clip(lower=0)
 
-    # Separar Lima y Callao vs otras regiones
-    lima_callao = resumen_distrital_copy[resumen_distrital_copy['region'].isin(['LIMA', 'CALLAO'])].copy()
-    otras_regiones = resumen_distrital_copy[~resumen_distrital_copy['region'].isin(['LIMA', 'CALLAO'])].copy()
+    # ---------------------------
+    # Filtro de región
+    # ---------------------------
+    regiones = ["Todos", "LIMA Y CALLAO", "Otras regiones"] + sorted(resumen_distrital_copy["region"].unique().tolist())
+    seleccion_region = st.selectbox("Filtrar por región:", regiones)
 
-    # Ordenar
-    lima_callao = lima_callao.sort_values('total_domicilios_sensibilizados', ascending=True)
-    otras_regiones = otras_regiones.sort_values('total_domicilios_sensibilizados', ascending=True)
-
-    # Crear gráficos
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(22, 12))
-
-    def crear_grafico(df, ax, titulo):
-        distritos = df['distrito_region'].values
-        sensibilizados = df['total_domicilios_sensibilizados'].values
-        pendientes = df['pendientes'].values
-        
-        y_pos = np.arange(len(distritos))
-        ax.barh(y_pos, sensibilizados, label='Sensibilizados', color='#2ecc71')
-        ax.barh(y_pos, pendientes, left=sensibilizados, label='Asignados', color='#e74c3c')
-
-        ax.set_yticks(y_pos)
-        ax.set_yticklabels(distritos, fontsize=9)
-        ax.set_title(titulo, fontsize=14, fontweight='bold')
-        ax.set_xlabel('Domicilios')
-        ax.legend()
-
-    # Dibujar gráficos
-    if not lima_callao.empty:
-        crear_grafico(lima_callao, ax1, 'LIMA Y CALLAO')
+    if seleccion_region == "Todos":
+        df_filtrado = resumen_distrital_copy
+    elif seleccion_region == "LIMA Y CALLAO":
+        df_filtrado = resumen_distrital_copy[resumen_distrital_copy['region'].isin(['LIMA', 'CALLAO'])]
+    elif seleccion_region == "Otras regiones":
+        df_filtrado = resumen_distrital_copy[~resumen_distrital_copy['region'].isin(['LIMA', 'CALLAO'])]
     else:
-        ax1.text(0.5, 0.5, 'Sin datos', ha='center')
+        df_filtrado = resumen_distrital_copy[resumen_distrital_copy['region'] == seleccion_region]
 
-    if not otras_regiones.empty:
-        crear_grafico(otras_regiones, ax2, 'OTRAS REGIONES')
-    else:
-        ax2.text(0.5, 0.5, 'Sin datos', ha='center')
+    # Ordenar de mayor a menor avance
+    df_filtrado = df_filtrado.sort_values(by="total_domicilios_sensibilizados", ascending=False)
 
-    st.pyplot(fig)
+    # ---------------------------
+    # Gráfico Plotly
+    # ---------------------------
+    fig = go.Figure()
+
+    fig.add_trace(go.Bar(
+        y=df_filtrado['distrito_region'],
+        x=df_filtrado['total_domicilios_sensibilizados'],
+        name='Sensibilizados',
+        orientation='h',
+        marker=dict(color='#2ecc71'),
+        text=df_filtrado['total_domicilios_sensibilizados'],
+        textposition='outside'
+    ))
+
+    fig.add_trace(go.Bar(
+        y=df_filtrado['distrito_region'],
+        x=df_filtrado['pendientes'],
+        name='Pendientes',
+        orientation='h',
+        marker=dict(color='#e74c3c'),
+        text=df_filtrado['pendientes'],
+        textposition='outside'
+    ))
+
+    fig.update_layout(
+        barmode='stack',
+        height=700,
+        title="Avance por distrito (Sensibilizados + Pendientes)",
+        xaxis_title="Número de domicilios",
+        yaxis_title="",
+        legend_title="Estado",
+        margin=dict(l=10, r=10, t=50, b=10)
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
 
 
 
