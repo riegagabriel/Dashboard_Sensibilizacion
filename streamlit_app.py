@@ -185,17 +185,45 @@ def cargar_podio():
 podio_df = cargar_podio()
 
 if podio_df is not None:
-    # Crear pestañas
     tab1, tab2 = st.tabs(["Dashboard", "PODIO"])
 
     with tab2:
         st.markdown("## 🏆 Podio de Sensibilizadores")
 
         # ---------------------------
-        # Gráfico interactivo Plotly
+        # Mini gráfico tipo PODIO
         # ---------------------------
-        import plotly.graph_objects as go
+        podio_top3 = podio_df.sort_values(
+            by="Domicilios_sensibilizados", ascending=False
+        ).head(3)
 
+        # Reordenar para que 1° esté en el centro
+        podio_top3 = podio_top3.iloc[[1, 0, 2]]  # 2° - 1° - 3°
+
+        fig_podio_top = go.Figure()
+
+        fig_podio_top.add_trace(go.Bar(
+            x=podio_top3['Sensibilizador'],
+            y=podio_top3['Domicilios_sensibilizados'],
+            marker_color=['#c0c0c0', '#ffd700', '#cd7f32'],  # plata, oro, bronce
+            text=podio_top3['Domicilios_sensibilizados'],
+            textposition='auto',
+            width=[0.5, 0.7, 0.5]
+        ))
+
+        fig_podio_top.update_layout(
+            title="🏅 Top 3 Sensibilizadores",
+            yaxis_title="Domicilios sensibilizados",
+            xaxis_title="",
+            showlegend=False,
+            height=400
+        )
+
+        st.plotly_chart(fig_podio_top, use_container_width=True)
+
+        # ---------------------------
+        # Gráfico interactivo de barras completo
+        # ---------------------------
         fig_podio = go.Figure()
 
         fig_podio.add_trace(go.Bar(
@@ -235,6 +263,4 @@ if podio_df is not None:
         # ---------------------------
         st.markdown("### 📋 Detalle del Podio")
         st.dataframe(podio_df)
-
-
 
