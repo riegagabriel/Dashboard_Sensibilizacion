@@ -169,5 +169,72 @@ if resumen_distrital_copy is not None:
 
     st.plotly_chart(fig, use_container_width=True)
 
+# ============================
+# NUEVA PESTAÑA: PODIO
+# ============================
+
+# Cargar archivo podio.xlsx
+@st.cache_data
+def cargar_podio():
+    try:
+        return pd.read_excel("podio.xlsx")
+    except:
+        st.error("⚠️ No se encontró archivo podio.xlsx. Súbelo a la carpeta del proyecto.")
+        return None
+
+podio_df = cargar_podio()
+
+if podio_df is not None:
+    # Crear pestañas
+    tab1, tab2 = st.tabs(["Dashboard", "PODIO"])
+
+    with tab2:
+        st.markdown("## 🏆 Podio de Sensibilizadores")
+
+        # ---------------------------
+        # Gráfico interactivo Plotly
+        # ---------------------------
+        import plotly.graph_objects as go
+
+        fig_podio = go.Figure()
+
+        fig_podio.add_trace(go.Bar(
+            y=podio_df['Sensibilizador'],
+            x=podio_df['REGISTROS'],
+            name='REGISTROS',
+            orientation='h',
+            marker=dict(color='#3498db'),
+            text=podio_df['REGISTROS'],
+            textposition='outside'
+        ))
+
+        fig_podio.add_trace(go.Bar(
+            y=podio_df['Sensibilizador'],
+            x=podio_df['Domicilios_sensibilizados'],
+            name='Domicilios sensibilizados',
+            orientation='h',
+            marker=dict(color='#2ecc71'),
+            text=podio_df['Domicilios_sensibilizados'],
+            textposition='outside'
+        ))
+
+        fig_podio.update_layout(
+            barmode='group',
+            height=800,
+            title="Registros y domicilios sensibilizados por Sensibilizador",
+            xaxis_title="Cantidad",
+            yaxis_title="Sensibilizador",
+            margin=dict(l=10, r=10, t=50, b=10),
+            legend_title="Indicador"
+        )
+
+        st.plotly_chart(fig_podio, use_container_width=True)
+
+        # ---------------------------
+        # Mostrar DataFrame
+        # ---------------------------
+        st.markdown("### 📋 Detalle del Podio")
+        st.dataframe(podio_df)
+
 
 
