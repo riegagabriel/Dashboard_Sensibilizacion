@@ -138,7 +138,7 @@ if resumen_distrital_copy is not None:
     fig = go.Figure()
 
     fig.add_trace(go.Bar(
-        y=df_filtrado['distrito_region'],
+        y=df_filtrado['DISTRITO_REGION'],
         x=df_filtrado['total_domicilios_sensibilizados'],
         name='Sensibilizados',
         orientation='h',
@@ -148,7 +148,7 @@ if resumen_distrital_copy is not None:
     ))
 
     fig.add_trace(go.Bar(
-        y=df_filtrado['distrito_region'],
+        y=df_filtrado['DISTRITO_REGION'],
         x=df_filtrado['pendientes'],
         name='Asignados',
         orientation='h',
